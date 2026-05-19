@@ -43,6 +43,7 @@ export default function DashboardPage() {
   const [allExpenses, setAllExpenses] = useState<Record<string, Expense[]>>({});
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => getMonthKey(new Date()));
+  const [activeTab, setActiveTab] = useState<'overview' | 'splits'>('overview');
 
   // Subscribe to groups
   useEffect(() => {
@@ -197,10 +198,71 @@ export default function DashboardPage() {
 
   const changePercent = prevMonthTotal > 0 ? ((totalSpent - prevMonthTotal) / prevMonthTotal) * 100 : 0;
 
+  // Transaction-level splits computation
+  const mySplits = useMemo(() => {
+    if (!user) return { owing: [], awaiting: [] };
+    const owing: any[] = [];
+    const awaiting: any[] = [];
+
+    Object.entries(allExpenses).forEach(([groupId, expensesList]) => {
+      const group = groups.find((g) => g.id === groupId);
+      if (!group) return;
+
+      expensesList.forEach((expense) => {
+        const hasMySplit = expense.splits && expense.splits[user.uid] !== undefined;
+        const mySplitAmount = hasMySplit ? expense.splits[user.uid] : 0;
+
+        if (expense.paidBy === user.uid) {
+          const otherSplits = Object.entries(expense.splits || {})
+            .filter(([uid, amt]) => uid !== user.uid && amt > 0.01)
+            .map(([uid, amt]) => ({
+              uid,
+              name: group.memberNames?.[uid] || uid.split('@')[0],
+              amount: amt,
+            }));
+
+          if (otherSplits.length > 0) {
+            awaiting.push({
+              id: expense.id,
+              description: expense.description,
+              totalAmount: expense.amount,
+              groupName: group.name,
+              date: expense.date,
+              category: expense.category,
+              debtors: otherSplits,
+            });
+          }
+        } else if (hasMySplit && mySplitAmount > 0.01) {
+          owing.push({
+            id: expense.id,
+            description: expense.description,
+            totalAmount: expense.amount,
+            oweAmount: mySplitAmount,
+            paidByName: group.memberNames?.[expense.paidBy] || 'Someone',
+            groupName: group.name,
+            date: expense.date,
+            category: expense.category,
+          });
+        }
+      });
+    });
+
+    const sortByDate = (a: any, b: any) => {
+      const da = a.date instanceof Date ? a.date : new Date(a.date);
+      const db = b.date instanceof Date ? b.date : new Date(b.date);
+      return db.getTime() - da.getTime();
+    };
+
+    return {
+      owing: owing.sort(sortByDate),
+      awaiting: awaiting.sort(sortByDate),
+    };
+  }, [allExpenses, groups, user]);
+
   return (
     <div className="animate-fade-in">
       {/* Page Header */}
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: 12 }}>
         <div>
           <h1 className="page-title">Dashboard</h1>
           <p className="page-subtitle">
@@ -208,24 +270,45 @@ export default function DashboardPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <select
-            className="select"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ width: 200 }}
-          >
-            {monthOptions.map((opt) => (
-              <option key={opt.key} value={opt.key}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          {activeTab === 'overview' && (
+            <select
+              className="select"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              style={{ width: 200 }}
+            >
+              {monthOptions.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          )}
           <button className="btn btn-primary" onClick={() => setShowAddExpense(true)}>
             <Plus size={18} />
             Add Expense
           </button>
         </div>
       </div>
+
+      {/* Tabs */}
+      <div className="tabs" style={{ width: 'fit-content', marginBottom: 28 }}>
+        <button
+          className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview
+        </button>
+        <button
+          className={`tab ${activeTab === 'splits' ? 'active' : ''}`}
+          onClick={() => setActiveTab('splits')}
+        >
+          My Splits
+        </button>
+      </div>
+
+      {activeTab === 'overview' ? (
+        <>
 
       {/* Stats Grid */}
       <div className="grid-stats">
@@ -545,6 +628,98 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+        </>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+          {/* Owing section */}
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>💸</span> Expenses You Owe For
+            </h3>
+            {mySplits.owing.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {mySplits.owing.map((item) => {
+                  const cat = getCategoryInfo(item.category);
+                  const d = item.date instanceof Date ? item.date : new Date(item.date);
+                  return (
+                    <div key={item.id} className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div className="expense-icon" style={{ background: `${cat.color}18` }}>{cat.emoji}</div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{item.description}</div>
+                          <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                            {item.groupName} · Paid by {item.paidByName}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--danger)', fontSize: 15 }}>
+                          {formatCurrency(item.oweAmount)}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                          {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="card" style={{ padding: '32px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>All clean!</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)' }}>You don't owe any group splits right now.</div>
+              </div>
+            )}
+          </div>
+
+          {/* Awaiting section */}
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>💰</span> Awaiting Payments
+            </h3>
+            {mySplits.awaiting.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {mySplits.awaiting.map((item) => {
+                  const cat = getCategoryInfo(item.category);
+                  const d = item.date instanceof Date ? item.date : new Date(item.date);
+                  return (
+                    <div key={item.id} className="card" style={{ padding: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div className="expense-icon" style={{ background: `${cat.color}18` }}>{cat.emoji}</div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 14 }}>{item.description}</div>
+                            <div style={{ fontSize: 12, color: 'var(--muted)' }}>{item.groupName}</div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--muted)' }}>
+                          {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </div>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
+                        {item.debtors.map((deb: any, i: number) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, padding: '4px 0' }}>
+                            <span style={{ color: 'var(--muted)' }}>{deb.name} owes you</span>
+                            <span style={{ fontWeight: 600, color: 'var(--success)' }}>{formatCurrency(deb.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="card" style={{ padding: '32px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>📥</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>No awaiting payments</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)' }}>When you split expenses, they will show up here.</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add Expense Modal */}
       {showAddExpense && (

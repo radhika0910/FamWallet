@@ -251,6 +251,11 @@ body {
   box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
 }
 
+.select option {
+  background-color: #14151a;
+  color: var(--foreground);
+}
+
 /* ---- Cards ---- */
 .card {
   background: var(--surface);

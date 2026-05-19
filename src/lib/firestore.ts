@@ -19,6 +19,7 @@ import {
   Timestamp,
   arrayUnion,
   writeBatch,
+  deleteField,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -168,28 +169,79 @@ export async function createInvite(email: string, groupId: string) {
 }
 
 export async function claimInvites(email: string, uid: string) {
-  const q = query(collection(db, 'pending_invites'), where('email', '==', email.toLowerCase()));
-  const snap = await getDocs(q);
+  const cleanEmail = email.toLowerCase().trim();
   
-  if (snap.empty) return;
+  // 1. Check legacy pending_invites
+  const qInvites = query(collection(db, 'pending_invites'), where('email', '==', cleanEmail));
+  const invitesSnap = await getDocs(qInvites);
   
-  const batch = writeBatch(db);
+  // 2. Query all groups where cleanEmail is a placeholder member
+  const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', cleanEmail));
+  const groupsSnap = await getDocs(qGroups);
+  
   const userSnap = await getDoc(doc(db, 'users', uid));
-  const userName = userSnap.data()?.displayName || 'Unknown';
+  const userName = userSnap.data()?.displayName || cleanEmail.split('@')[0];
 
-  for (const inviteDoc of snap.docs) {
+  const batch = writeBatch(db);
+
+  // Process legacy invites
+  for (const inviteDoc of invitesSnap.docs) {
     const invite = inviteDoc.data();
     const groupRef = doc(db, 'groups', invite.groupId);
-    
-    // Add user to group members and memberNames mapping
     batch.update(groupRef, {
       members: arrayUnion(uid),
       [`memberNames.${uid}`]: userName,
+      [`memberEmails.${uid}`]: cleanEmail,
     });
-    
-    // Delete the invite
     batch.delete(inviteDoc.ref);
   }
-  
+
+  // Process inline group memberships
+  for (const groupDoc of groupsSnap.docs) {
+    const group = groupDoc.data() as Group;
+    const groupRef = doc(db, 'groups', groupDoc.id);
+
+    // Update members array: remove email, add uid
+    const updatedMembers = (group.members || []).filter(m => m !== cleanEmail);
+    if (!updatedMembers.includes(uid)) {
+      updatedMembers.push(uid);
+    }
+
+    batch.update(groupRef, {
+      members: updatedMembers,
+      [`memberNames.${uid}`]: userName,
+      [`memberEmails.${uid}`]: cleanEmail,
+      [`memberNames.${cleanEmail}`]: deleteField(),
+      [`memberEmails.${cleanEmail}`]: deleteField(),
+    });
+
+    // Clean up expenses in this group that split with the pending email
+    const expensesRef = collection(db, 'groups', groupDoc.id, 'expenses');
+    const expensesSnap = await getDocs(expensesRef);
+    for (const expDoc of expensesSnap.docs) {
+      const exp = expDoc.data() as Expense;
+      let needsUpdate = false;
+      const updatedSplits = { ...exp.splits };
+      let updatedPaidBy = exp.paidBy;
+
+      if (exp.splits && exp.splits[cleanEmail] !== undefined) {
+        updatedSplits[uid] = exp.splits[cleanEmail];
+        delete updatedSplits[cleanEmail];
+        needsUpdate = true;
+      }
+      if (exp.paidBy === cleanEmail) {
+        updatedPaidBy = uid;
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        batch.update(expDoc.ref, {
+          splits: updatedSplits,
+          paidBy: updatedPaidBy,
+        });
+      }
+    }
+  }
+
   await batch.commit();
 }

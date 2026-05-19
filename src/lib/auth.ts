@@ -7,6 +7,9 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   signOut as firebaseSignOut,
   updateProfile,
   sendPasswordResetEmail,
@@ -56,4 +59,26 @@ async function createUserDoc(user: FirebaseUser, name?: string) {
 
 export async function resetPassword(email: string) {
   await sendPasswordResetEmail(auth, email);
+}
+
+const appleProvider = new OAuthProvider('apple.com');
+
+export async function signInWithApple() {
+  const cred = await signInWithPopup(auth, appleProvider);
+  await createUserDoc(cred.user);
+  return cred.user;
+}
+
+export function setupRecaptcha(containerId: string) {
+  if (!(window as any).recaptchaVerifier) {
+    (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: 'invisible',
+    });
+  }
+  return (window as any).recaptchaVerifier;
+}
+
+export async function signInWithPhone(phoneNumber: string, appVerifier: any) {
+  const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+  return confirmationResult;
 }

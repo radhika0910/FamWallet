@@ -41,8 +41,19 @@ export default function GroupsPage() {
   // Create form
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState<'solo' | 'couple' | 'family' | 'group'>('family');
+  const [invitedEmails, setInvitedEmails] = useState<string[]>(['', '']);
   const [newEmoji, setNewEmoji] = useState('💰');
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    if (newType === 'solo') {
+      setInvitedEmails([]);
+    } else if (newType === 'couple') {
+      setInvitedEmails(['']);
+    } else {
+      setInvitedEmails(['', '']);
+    }
+  }, [newType]);
 
   // Invite form
   const [inviteEmail, setInviteEmail] = useState('');
@@ -59,20 +70,53 @@ export default function GroupsPage() {
     e.preventDefault();
     if (!user || !newName.trim()) return;
 
+    // Validate emails if not solo
+    const cleanEmails = invitedEmails
+      .map(email => email.trim().toLowerCase())
+      .filter(email => email !== '');
+
+    if (newType === 'couple' && cleanEmails.length !== 1) {
+      alert("Please provide your partner's email.");
+      return;
+    }
+    if ((newType === 'group' || newType === 'family') && cleanEmails.length < 2) {
+      alert("Please invite at least 2 members for this group.");
+      return;
+    }
+
     setCreating(true);
     try {
+      const resolvedMembers = [user.uid];
+      const memberEmailsMap: Record<string, string> = { [user.uid]: user.email || '' };
+      const memberNamesMap: Record<string, string> = { [user.uid]: user.displayName || 'You' };
+
+      for (const email of cleanEmails) {
+        const foundUser = await findUserByEmail(email);
+        if (foundUser) {
+          resolvedMembers.push(foundUser.id);
+          memberEmailsMap[foundUser.id] = foundUser.email;
+          memberNamesMap[foundUser.id] = foundUser.displayName || email.split('@')[0];
+        } else {
+          resolvedMembers.push(email);
+          memberEmailsMap[email] = email;
+          memberNamesMap[email] = `${email.split('@')[0]} (Pending)`;
+        }
+      }
+
       await createGroup({
         name: newName.trim(),
         type: newType,
-        members: [user.uid],
-        memberEmails: { [user.uid]: user.email || '' },
-        memberNames: { [user.uid]: user.displayName || 'You' },
+        members: resolvedMembers,
+        memberEmails: memberEmailsMap,
+        memberNames: memberNamesMap,
         createdBy: user.uid,
         currency: 'INR',
         emoji: newEmoji,
       });
+
       setShowCreate(false);
       setNewName('');
+      setInvitedEmails(newType === 'couple' ? [''] : ['', '']);
     } catch (err) {
       console.error('Failed to create group:', err);
     } finally {
@@ -330,6 +374,55 @@ export default function GroupsPage() {
                   required
                 />
               </div>
+
+              {/* Invited Emails */}
+              {newType !== 'solo' && (
+                <div className="input-group">
+                  <label className="input-label">
+                    {newType === 'couple' ? "Partner's Email" : "Invited Member Emails"}
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {invitedEmails.map((email, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: 8 }}>
+                        <input
+                          type="email"
+                          className="input"
+                          placeholder={newType === 'couple' ? "partner@example.com" : `member${idx + 1}@example.com`}
+                          value={email}
+                          onChange={(e) => {
+                            const copy = [...invitedEmails];
+                            copy[idx] = e.target.value;
+                            setInvitedEmails(copy);
+                          }}
+                          required
+                        />
+                        {newType !== 'couple' && invitedEmails.length > 2 && (
+                          <button
+                            type="button"
+                            className="btn btn-icon btn-ghost"
+                            onClick={() => {
+                              setInvitedEmails(invitedEmails.filter((_, i) => i !== idx));
+                            }}
+                            style={{ color: 'var(--danger)', padding: 8 }}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {newType !== 'couple' && invitedEmails.length < 9 && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setInvitedEmails([...invitedEmails, ''])}
+                        style={{ alignSelf: 'flex-start', marginTop: 4 }}
+                      >
+                        + Add Email Field
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Emoji */}
               <div className="input-group">
