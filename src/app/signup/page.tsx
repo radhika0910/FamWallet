@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signUp, signInWithGoogle } from '@/lib/auth';
+import { claimInvites } from '@/lib/firestore';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -28,7 +29,10 @@ export default function SignUpPage() {
 
     setLoading(true);
     try {
-      await signUp(email, password, name);
+      const user = await signUp(email, password, name);
+      if (user.email) {
+        await claimInvites(user.email, user.uid);
+      }
       router.push('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Sign up failed';
@@ -47,7 +51,10 @@ export default function SignUpPage() {
   const handleGoogle = async () => {
     setError('');
     try {
-      await signInWithGoogle();
+      const user = await signInWithGoogle();
+      if (user.email) {
+        await claimInvites(user.email, user.uid);
+      }
       router.push('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed';

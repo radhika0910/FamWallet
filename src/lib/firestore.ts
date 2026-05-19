@@ -17,6 +17,8 @@ import {
   onSnapshot,
   serverTimestamp,
   Timestamp,
+  arrayUnion,
+  writeBatch,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -153,4 +155,41 @@ export async function findUserByEmail(email: string) {
   const snap = await getDocs(q);
   if (snap.empty) return null;
   return { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+// ---- INVITES ----
+
+export async function createInvite(email: string, groupId: string) {
+  await addDoc(collection(db, 'pending_invites'), {
+    email: email.toLowerCase(),
+    groupId,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function claimInvites(email: string, uid: string) {
+  const q = query(collection(db, 'pending_invites'), where('email', '==', email.toLowerCase()));
+  const snap = await getDocs(q);
+  
+  if (snap.empty) return;
+  
+  const batch = writeBatch(db);
+  const userSnap = await getDoc(doc(db, 'users', uid));
+  const userName = userSnap.data()?.displayName || 'Unknown';
+
+  for (const inviteDoc of snap.docs) {
+    const invite = inviteDoc.data();
+    const groupRef = doc(db, 'groups', invite.groupId);
+    
+    // Add user to group members and memberNames mapping
+    batch.update(groupRef, {
+      members: arrayUnion(uid),
+      [`memberNames.${uid}`]: userName,
+    });
+    
+    // Delete the invite
+    batch.delete(inviteDoc.ref);
+  }
+  
+  await batch.commit();
 }

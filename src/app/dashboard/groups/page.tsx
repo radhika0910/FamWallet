@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { subscribeToGroups, createGroup, deleteGroup, updateGroup, findUserByEmail } from '@/lib/firestore';
+import { subscribeToGroups, createGroup, deleteGroup, updateGroup, findUserByEmail, createInvite } from '@/lib/firestore';
 import type { Group } from '@/types';
 import {
   Plus,
@@ -89,7 +89,10 @@ export default function GroupsPage() {
     try {
       const foundUser = await findUserByEmail(inviteEmail.trim());
       if (!foundUser) {
-        setInviteError('No user found with this email. They need to sign up first.');
+        await createInvite(inviteEmail.trim(), showInvite);
+        setInviteEmail('');
+        setShowInvite(null);
+        alert(`An invite has been saved for ${inviteEmail.trim()}. They will automatically join when they sign up!`);
         return;
       }
 
@@ -392,7 +395,7 @@ export default function GroupsPage() {
             </div>
 
             <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 20 }}>
-              Enter the email of the person you want to add. They must have a FamWallet account.
+              Enter the email of the person you want to add. If they don't have an account, they'll join automatically when they sign up.
             </p>
 
             {inviteError && (

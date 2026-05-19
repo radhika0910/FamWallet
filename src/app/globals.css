@@ -992,3 +992,108 @@ body {
   color: var(--muted) !important;
   font-size: 13px !important;
 }
+
+/* ============================================
+   ADVANCED 3D & MODERN UI EFFECTS
+   ============================================ */
+
+/* ---- Glowing Orbs ---- */
+.mesh-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(at 0% 0%, rgba(108, 92, 231, 0.15) 0px, transparent 50%),
+              radial-gradient(at 100% 0%, rgba(0, 206, 201, 0.15) 0px, transparent 50%),
+              radial-gradient(at 100% 100%, rgba(255, 107, 107, 0.1) 0px, transparent 50%),
+              radial-gradient(at 0% 100%, rgba(253, 203, 110, 0.1) 0px, transparent 50%);
+  filter: blur(60px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+  animation: floatOrb 15s infinite alternate ease-in-out;
+}
+
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  background: rgba(108, 92, 231, 0.2);
+  top: -100px;
+  left: -100px;
+}
+
+.orb-2 {
+  width: 300px;
+  height: 300px;
+  background: rgba(0, 206, 201, 0.2);
+  bottom: -50px;
+  right: -50px;
+  animation-duration: 20s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, 30px) scale(1.1); }
+  100% { transform: translate(-30px, 50px) scale(0.9); }
+}
+
+/* ---- 3D Cards ---- */
+.card-3d {
+  transform: perspective(1000px) rotateX(0) rotateY(0);
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(108, 92, 231, 0.2);
+}
+
+.card-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Apply 3D to general cards implicitly for a richer feel */
+.card {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+  transform: perspective(1000px) translateY(0);
+}
+
+.card:hover {
+  transform: perspective(1000px) translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: perspective(1000px) translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Make buttons pop more */
+.btn-primary {
+  background-size: 200% auto;
+  transition: 0.4s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-position: right center;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
+}
