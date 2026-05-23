@@ -463,7 +463,7 @@ export default function GroupDetailPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value: number) => formatCurrency(value)}
+                        formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
                         contentStyle={{
                           background: '#14151a',
                           border: '1px solid rgba(255,255,255,0.08)',
