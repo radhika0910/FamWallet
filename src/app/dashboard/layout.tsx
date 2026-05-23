@@ -18,7 +18,6 @@ import {
   LogOut,
   Menu,
   X,
-  Wallet,
   PiggyBank,
 } from 'lucide-react';
 
@@ -89,7 +88,7 @@ export default function DashboardLayout({
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Wallet size={20} style={{ color: 'var(--primary)' }} />
+          <img src="/logo.png" alt="FamWallet" style={{ width: 20, height: 20 }} />
           <span style={{ fontWeight: 800, fontSize: 16, background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             FamWallet
           </span>
@@ -118,7 +117,7 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <Wallet size={24} style={{ color: 'var(--primary)' }} />
+          <img src="/logo.png" alt="FamWallet" style={{ width: 24, height: 24 }} />
           <h1>FamWallet</h1>
         </div>
 
