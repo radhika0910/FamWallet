@@ -23,7 +23,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Group, Expense, Settlement } from '@/types';
+import type { Group, Expense, Settlement, SavingsGoal, Budget } from '@/types';
 
 // ---- GROUPS ----
 
@@ -74,11 +74,15 @@ export async function deleteGroup(groupId: string) {
 // ---- EXPENSES ----
 
 export async function addExpense(groupId: string, expense: Omit<Expense, 'id' | 'createdAt'>): Promise<string> {
-  const docRef = await addDoc(collection(db, 'groups', groupId, 'expenses'), {
-    ...expense,
-    date: expense.date instanceof Date ? Timestamp.fromDate(expense.date) : expense.date,
-    createdAt: serverTimestamp(),
-  });
+  // Strip undefined values — Firestore rejects them
+  const clean = Object.fromEntries(
+    Object.entries({
+      ...expense,
+      date: expense.date instanceof Date ? Timestamp.fromDate(expense.date) : expense.date,
+      createdAt: serverTimestamp(),
+    }).filter(([, v]) => v !== undefined)
+  );
+  const docRef = await addDoc(collection(db, 'groups', groupId, 'expenses'), clean);
   return docRef.id;
 }
 
@@ -119,11 +123,15 @@ export function subscribeToExpenses(
 // ---- SETTLEMENTS ----
 
 export async function addSettlement(groupId: string, settlement: Omit<Settlement, 'id' | 'createdAt'>): Promise<string> {
-  const docRef = await addDoc(collection(db, 'groups', groupId, 'settlements'), {
-    ...settlement,
-    date: settlement.date instanceof Date ? Timestamp.fromDate(settlement.date) : settlement.date,
-    createdAt: serverTimestamp(),
-  });
+  // Strip undefined values — Firestore rejects them
+  const clean = Object.fromEntries(
+    Object.entries({
+      ...settlement,
+      date: settlement.date instanceof Date ? Timestamp.fromDate(settlement.date) : settlement.date,
+      createdAt: serverTimestamp(),
+    }).filter(([, v]) => v !== undefined)
+  );
+  const docRef = await addDoc(collection(db, 'groups', groupId, 'settlements'), clean);
   return docRef.id;
 }
 
@@ -244,4 +252,90 @@ export async function claimInvites(email: string, uid: string) {
   }
 
   await batch.commit();
+}
+
+// ---- SAVINGS GOALS ----
+
+export async function createSavingsGoal(
+  goal: Omit<SavingsGoal, 'id' | 'createdAt'>
+): Promise<string> {
+  const clean = Object.fromEntries(
+    Object.entries({
+      ...goal,
+      deadline: goal.deadline instanceof Date ? Timestamp.fromDate(goal.deadline) : goal.deadline,
+      createdAt: serverTimestamp(),
+    }).filter(([, v]) => v !== undefined)
+  );
+  const docRef = await addDoc(collection(db, 'savings_goals'), clean);
+  return docRef.id;
+}
+
+export function subscribeSavingsGoals(
+  uid: string,
+  callback: (goals: SavingsGoal[]) => void
+): Unsubscribe {
+  const q = query(
+    collection(db, 'savings_goals'),
+    where('createdBy', '==', uid),
+    orderBy('createdAt', 'desc')
+  );
+  return onSnapshot(q, (snap) => {
+    const goals = snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        deadline: data.deadline instanceof Timestamp ? data.deadline.toDate() : data.deadline ? new Date(data.deadline) : null,
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+      } as SavingsGoal;
+    });
+    callback(goals);
+  });
+}
+
+export async function updateSavingsGoal(
+  goalId: string,
+  data: Partial<Pick<SavingsGoal, 'currentAmount' | 'name' | 'targetAmount' | 'deadline' | 'emoji'>>
+): Promise<void> {
+  const updateData: Record<string, unknown> = { ...data };
+  if (data.deadline instanceof Date) {
+    updateData.deadline = Timestamp.fromDate(data.deadline);
+  }
+  await updateDoc(doc(db, 'savings_goals', goalId), updateData);
+}
+
+export async function deleteSavingsGoal(goalId: string): Promise<void> {
+  await deleteDoc(doc(db, 'savings_goals', goalId));
+}
+
+// ---- BUDGETS ----
+
+export async function setBudget(
+  groupId: string,
+  budget: Omit<Budget, 'id' | 'createdAt'>
+): Promise<string> {
+  // Use a deterministic ID so setting a budget is idempotent per category+month
+  const budgetId = `${budget.category}_${budget.month}`;
+  await setDoc(doc(db, 'groups', groupId, 'budgets', budgetId), {
+    ...budget,
+    createdAt: serverTimestamp(),
+  });
+  return budgetId;
+}
+
+export function subscribeBudgets(
+  groupId: string,
+  callback: (budgets: Budget[]) => void
+): Unsubscribe {
+  return onSnapshot(collection(db, 'groups', groupId, 'budgets'), (snap) => {
+    const budgets = snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    })) as Budget[];
+    callback(budgets);
+  });
+}
+
+export async function deleteBudget(groupId: string, budgetId: string): Promise<void> {
+  await deleteDoc(doc(db, 'groups', groupId, 'budgets', budgetId));
 }

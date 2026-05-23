@@ -49,6 +49,28 @@ export interface Settlement {
   note?: string;
 }
 
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  emoji: string;
+  targetAmount: number;
+  currentAmount: number;
+  groupId: string | null; // null = personal goal
+  deadline: Date | null;
+  createdBy: string; // UID
+  createdAt: Date;
+}
+
+export interface Budget {
+  id: string;
+  groupId: string;
+  category: ExpenseCategory;
+  monthlyLimit: number;
+  month: string; // "YYYY-MM"
+  createdBy: string;
+  createdAt: Date;
+}
+
 export type ExpenseCategory =
   | 'food'
   | 'groceries'

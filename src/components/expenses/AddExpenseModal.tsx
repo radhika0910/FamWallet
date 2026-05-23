@@ -94,6 +94,7 @@ export default function AddExpenseModal({
         }
       }
 
+      const trimmedNotes = notes.trim();
       await addExpense(selectedGroupId, {
         groupId: selectedGroupId,
         description: description.trim(),
@@ -104,7 +105,7 @@ export default function AddExpenseModal({
         splitType,
         date: new Date(date),
         createdBy: userId,
-        notes: notes.trim() || undefined,
+        ...(trimmedNotes ? { notes: trimmedNotes } : {}),
       });
 
       onClose();

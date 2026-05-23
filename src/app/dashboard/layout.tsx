@@ -19,12 +19,14 @@ import {
   Menu,
   X,
   Wallet,
+  PiggyBank,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/expenses', label: 'Expenses', icon: Receipt },
   { href: '/dashboard/groups', label: 'Groups', icon: Users },
+  { href: '/dashboard/goals', label: 'Goals', icon: PiggyBank },
   { href: '/dashboard/settlements', label: 'Settlements', icon: ArrowLeftRight },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
