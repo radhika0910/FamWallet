@@ -29,7 +29,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (mode === 'phone' && !window.recaptchaVerifier) {
+    if (mode === 'phone' && !(window as any).recaptchaVerifier) {
       setupRecaptcha('recaptcha-container');
     }
   }, [mode]);

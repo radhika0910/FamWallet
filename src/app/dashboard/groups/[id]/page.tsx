@@ -463,7 +463,7 @@ export default function GroupDetailPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
+                        formatter={(value) => typeof value === 'number' ? formatCurrency(value) : ''}
                         contentStyle={{
                           background: '#14151a',
                           border: '1px solid rgba(255,255,255,0.08)',
@@ -537,7 +537,7 @@ export default function GroupDetailPage() {
                         width={70}
                       />
                       <Tooltip
-                        formatter={(value: number) => [formatCurrency(value), 'Paid']}
+                        formatter={(value) => typeof value === 'number' ? [formatCurrency(value), 'Paid'] : ['', '']}
                         contentStyle={{
                           background: '#14151a',
                           border: '1px solid rgba(255,255,255,0.08)',
@@ -577,7 +577,7 @@ export default function GroupDetailPage() {
                     tickFormatter={(v) => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
                   />
                   <Tooltip
-                    formatter={(value: number) => [formatCurrency(value), 'Total']}
+                    formatter={(value) => typeof value === 'number' ? [formatCurrency(value), 'Total'] : ['', '']}
                     contentStyle={{
                       background: '#14151a',
                       border: '1px solid rgba(255,255,255,0.08)',

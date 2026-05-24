@@ -30,7 +30,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (mode === 'phone' && !window.recaptchaVerifier) {
+    if (mode === 'phone' && !(window as any).recaptchaVerifier) {
       setupRecaptcha('recaptcha-container-signup');
     }
   }, [mode]);

@@ -25,6 +25,19 @@ import {
 import { db } from './firebase';
 import type { Group, Expense, Settlement, SavingsGoal, Budget } from '@/types';
 
+// ---- HELPERS ----
+
+function convertTimestamp(value: any): Date | any {
+  return value instanceof Timestamp ? value.toDate() : value;
+}
+
+function convertGroupData(data: any): Group {
+  return {
+    ...data,
+    createdAt: convertTimestamp(data.createdAt),
+  } as Group;
+}
+
 // ---- GROUPS ----
 
 export async function createGroup(group: Omit<Group, 'id' | 'createdAt'>): Promise<string> {
@@ -38,7 +51,7 @@ export async function createGroup(group: Omit<Group, 'id' | 'createdAt'>): Promi
 export async function getGroup(groupId: string): Promise<Group | null> {
   const snap = await getDoc(doc(db, 'groups', groupId));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as Group;
+  return convertGroupData({ id: snap.id, ...snap.data() });
 }
 
 export async function getUserGroups(uid: string): Promise<Group[]> {
@@ -48,7 +61,7 @@ export async function getUserGroups(uid: string): Promise<Group[]> {
     orderBy('createdAt', 'desc')
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Group));
+  return snap.docs.map((d) => convertGroupData({ id: d.id, ...d.data() }));
 }
 
 export function subscribeToGroups(uid: string, callback: (groups: Group[]) => void): Unsubscribe {
@@ -58,7 +71,7 @@ export function subscribeToGroups(uid: string, callback: (groups: Group[]) => vo
     orderBy('createdAt', 'desc')
   );
   return onSnapshot(q, (snap) => {
-    const groups = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Group));
+    const groups = snap.docs.map((d) => convertGroupData({ id: d.id, ...d.data() }));
     callback(groups);
   });
 }
@@ -159,11 +172,11 @@ export function subscribeToSettlements(
 
 // ---- USER LOOKUP ----
 
-export async function findUserByEmail(email: string) {
+export async function findUserByEmail(email: string): Promise<{ id: string; email: string; displayName: string } | null> {
   const q = query(collection(db, 'users'), where('email', '==', email));
   const snap = await getDocs(q);
   if (snap.empty) return null;
-  return { id: snap.docs[0].id, ...snap.docs[0].data() };
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as { id: string; email: string; displayName: string };
 }
 
 // ---- INVITES ----

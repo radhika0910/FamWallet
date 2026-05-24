@@ -443,7 +443,7 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
+                    formatter={(value) => typeof value === 'number' ? formatCurrency(value) : ''}
                     contentStyle={{
                       background: '#14151a',
                       border: '1px solid rgba(255,255,255,0.08)',
@@ -511,7 +511,7 @@ export default function DashboardPage() {
                   tickFormatter={(v) => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
                 />
                 <Tooltip
-                  formatter={(value: number) => [formatCurrency(value), 'Spent']}
+                  formatter={(value) => typeof value === 'number' ? [formatCurrency(value), 'Spent'] : ['', '']}
                   contentStyle={{
                     background: '#14151a',
                     border: '1px solid rgba(255,255,255,0.08)',
@@ -554,7 +554,7 @@ export default function DashboardPage() {
                 tickFormatter={(v) => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
               />
               <Tooltip
-                formatter={(value: number) => [formatCurrency(value), 'Total']}
+                formatter={(value) => typeof value === 'number' ? [formatCurrency(value), 'Total'] : ['', '']}
                 contentStyle={{
                   background: '#14151a',
                   border: '1px solid rgba(255,255,255,0.08)',
