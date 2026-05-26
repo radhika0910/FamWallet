@@ -29,7 +29,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body>
+      <body style={{ position: 'relative' }}>
+        <div className="ambient-glows">
+          <div className="ambient-glow-1" />
+          <div className="ambient-glow-2" />
+          <div className="ambient-glow-3" />
+          <div className="ambient-glow-4" />
+        </div>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

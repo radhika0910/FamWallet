@@ -1102,3 +1102,79 @@ body {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
 }
+
+/* Ambient Background Glows */
+.ambient-glows {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ambient-glow-1 {
+  position: absolute;
+  top: -10%;
+  left: -5%;
+  width: 55vw;
+  height: 55vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.18) 0%, rgba(108, 92, 231, 0) 70%);
+  filter: blur(100px);
+  animation: ambientFloat1 25s infinite alternate ease-in-out;
+}
+
+.ambient-glow-2 {
+  position: absolute;
+  bottom: -15%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 206, 201, 0.12) 0%, rgba(0, 206, 201, 0) 70%);
+  filter: blur(120px);
+  animation: ambientFloat2 30s infinite alternate ease-in-out;
+}
+
+.ambient-glow-3 {
+  position: absolute;
+  top: 30%;
+  right: 15%;
+  width: 40vw;
+  height: 40vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 107, 107, 0.08) 0%, rgba(255, 107, 107, 0) 70%);
+  filter: blur(90px);
+  animation: ambientFloat3 22s infinite alternate ease-in-out;
+}
+
+.ambient-glow-4 {
+  position: absolute;
+  bottom: 10%;
+  left: 15%;
+  width: 45vw;
+  height: 45vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 203, 110, 0.06) 0%, rgba(253, 203, 110, 0) 70%);
+  filter: blur(100px);
+  animation: ambientFloat1 28s infinite alternate-reverse ease-in-out;
+}
+
+@keyframes ambientFloat1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6%, 8%) scale(1.08); }
+  100% { transform: translate(-4%, -5%) scale(0.95); }
+}
+
+@keyframes ambientFloat2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-8%, 5%) scale(0.92); }
+  100% { transform: translate(5%, -8%) scale(1.05); }
+}
+
+@keyframes ambientFloat3 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5%, -7%) scale(1.05); }
+  100% { transform: translate(-6%, 6%) scale(0.95); }
+}
+
