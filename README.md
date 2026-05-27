@@ -26,6 +26,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 ## ✨ Features
 
 ### 🔐 Authentication
+
 - **Email/Password Sign-up & Sign-in** with secure password validation
 - **Google OAuth** for quick sign-up
 - **Apple Sign-in** support
@@ -34,6 +35,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 - Persistent login state across browser sessions
 
 ### 👥 Group Management
+
 - **Solo** - Personal expense tracking
 - **Couple** - Split with one partner
 - **Family** - Share expenses with multiple family members
@@ -43,6 +45,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 - Pending invite system for not-yet-registered users
 
 ### 💸 Expense Tracking
+
 - **Quick Add** - Add expenses with description, amount, category, date, and optional notes
 - **Smart Splits** - Three split types:
   - **Equal**: Automatically splits evenly among members
@@ -53,6 +56,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 - **Edit & Delete** - Modify or remove expenses anytime
 
 ### 🔄 Settlements & Balances
+
 - **Automatic Balance Calculation** - Tracks who owes whom after all expenses
 - **Smart Settlement System** - Shows the minimum number of transactions needed to settle all debts
 - **Transaction History** - View all settlements with dates and amounts
@@ -60,6 +64,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 - **Real-time Updates** - Balances update instantly when expenses or settlements change
 
 ### 📊 Visual Analytics & Reports
+
 - **Category Breakdown (Pie Chart)** - All-time spending by category
 - **Member Contributions (Bar Chart)** - Track who paid how much
 - **Monthly Spending Trend (Line Chart)** - Last 3 months spending pattern
@@ -71,6 +76,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 - **Group-Level Analytics** - Separate dashboard for each group
 
 ### 💰 Budget Management
+
 - **Monthly Budgets** - Set spending limits by category for each month
 - **Budget Tracking** - See current vs. limit spending in real-time
 - **Visual Indicators**:
@@ -81,6 +87,7 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 - **Quick Budget Setup** - Set budget from unbudgeted categories
 
 ### 📈 Dashboard Features
+
 - **Personal Dashboard** - Overview of all your groups and spending
 - **Group Dashboard** - Detailed view with balances, trends, and transactions
 - **Tabbed Interface** - Switch between Overview, Expenses, and Budgets tabs
@@ -91,18 +98,18 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend Framework** | Next.js 16 (with Turbopack) |
-| **UI Library** | React 19 |
-| **Styling** | Tailwind CSS 4 + Custom CSS |
-| **Backend/Database** | Firebase (Auth + Firestore + Analytics) |
-| **Charts** | Recharts |
-| **Icons** | Lucide React |
-| **3D Graphics** | Three.js (with React Three Fiber) |
-| **Language** | TypeScript (Strict mode) |
-| **Package Manager** | npm |
-| **Deployment** | Firebase Hosting |
+| Layer                  | Technology                              |
+| ---------------------- | --------------------------------------- |
+| **Frontend Framework** | Next.js 16 (with Turbopack)             |
+| **UI Library**         | React 19                                |
+| **Styling**            | Tailwind CSS 4 + Custom CSS             |
+| **Backend/Database**   | Firebase (Auth + Firestore + Analytics) |
+| **Charts**             | Recharts                                |
+| **Icons**              | Lucide React                            |
+| **3D Graphics**        | Three.js (with React Three Fiber)       |
+| **Language**           | TypeScript (Strict mode)                |
+| **Package Manager**    | npm                                     |
+| **Deployment**         | Firebase Hosting                        |
 
 ---
 
@@ -170,18 +177,21 @@ my-app/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - A Firebase project (create at [firebase.google.com](https://firebase.google.com))
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/expense-tracker.git
    cd expense-tracker/my-app
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -189,9 +199,11 @@ my-app/
 3. **Set up environment variables** (see next section)
 
 4. **Run development server**
+
    ```bash
    npm run dev
    ```
+
    Open [http://localhost:3000](http://localhost:3000) in your browser
 
 5. **Build for production**
@@ -220,6 +232,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 **Note**: These are public keys (prefixed with `NEXT_PUBLIC_`), so it's safe to expose them in client-side code. Secure authentication is handled by Firebase rules.
 
 ### Getting Firebase Credentials
+
 1. Go to [Firebase Console](https://console.firebase.google.com)
 2. Create a new project or select existing one
 3. Go to Project Settings → General
@@ -232,34 +245,43 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 ## 💡 Core Features Explained
 
 ### Real-time Sync with Firestore
+
 The app uses Firestore listeners (`onSnapshot`) to subscribe to data changes:
+
 - **Groups**: Get updated when members join/leave
 - **Expenses**: See new expenses immediately as they're added
 - **Settlements**: Track payments in real-time
 
 Example from `firestore.ts`:
+
 ```typescript
 export function subscribeToExpenses(groupId: string, callback) {
   return onSnapshot(
-    query(collection(db, 'groups', groupId, 'expenses'), orderBy('date', 'desc')),
+    query(
+      collection(db, "groups", groupId, "expenses"),
+      orderBy("date", "desc"),
+    ),
     (snap) => {
-      const expenses = snap.docs.map(d => convertExpenseData(d));
+      const expenses = snap.docs.map((d) => convertExpenseData(d));
       callback(expenses);
-    }
+    },
   );
 }
 ```
 
 ### Smart Split Calculation
+
 The app supports three split methods:
 
 1. **Equal Split**
+
    ```
    Total: ₹1000 | Members: 4
    Each owes: ₹250
    ```
 
 2. **Percentage Split**
+
    ```
    Total: ₹1000 | Distribution: 50%, 30%, 20%
    Person A owes: ₹500, Person B: ₹300, Person C: ₹200
@@ -272,6 +294,7 @@ The app supports three split methods:
    ```
 
 ### Balance Settlement Algorithm
+
 Calculates the minimum transactions needed to settle all debts:
 
 ```typescript
@@ -291,11 +314,13 @@ Calculates the minimum transactions needed to settle all debts:
 ## 🏗 Project Architecture
 
 ### Authentication Flow
+
 ```
 User → Firebase Auth (Email/Phone/Google) → JWT Token → Firestore Rules Check
 ```
 
 ### Data Flow
+
 ```
 React Component → Context (useAuth) → Firestore Service → Firebase
                                    ↓
@@ -305,6 +330,7 @@ React Component → Context (useAuth) → Firestore Service → Firebase
 ```
 
 ### Firestore Security Rules
+
 ```typescript
 // Only authenticated users can read their own data
 match /users/{userId} {
@@ -322,19 +348,24 @@ match /groups/{groupId} {
 ## 🎨 Key Components
 
 ### AuthContext
+
 Global authentication state provider:
+
 ```typescript
 interface AuthContextType {
   user: FirebaseUser | null;
   loading: boolean;
 }
 ```
+
 - Used in every authenticated page
 - Persists across page reloads
 - Triggers redirect to login if not authenticated
 
 ### AddExpenseModal
+
 Reusable expense creation form:
+
 - Dynamic group selector
 - Split type selection
 - Custom member splits input
@@ -343,7 +374,9 @@ Reusable expense creation form:
 - Real-time validation
 
 ### Dashboard Charts
+
 Interactive Recharts components:
+
 - **Pie Chart**: Category breakdown (all-time)
 - **Bar Chart**: Member contributions
 - **Line Chart**: 6-month spending trend
@@ -355,6 +388,7 @@ Interactive Recharts components:
 ### Collections & Documents
 
 #### `users/{userId}`
+
 ```typescript
 {
   uid: string;
@@ -366,6 +400,7 @@ Interactive Recharts components:
 ```
 
 #### `groups/{groupId}`
+
 ```typescript
 {
   id: string;
@@ -382,6 +417,7 @@ Interactive Recharts components:
 ```
 
 #### `groups/{groupId}/expenses/{expenseId}`
+
 ```typescript
 {
   id: string;
@@ -400,6 +436,7 @@ Interactive Recharts components:
 ```
 
 #### `groups/{groupId}/settlements/{settlementId}`
+
 ```typescript
 {
   id: string;
@@ -414,6 +451,7 @@ Interactive Recharts components:
 ```
 
 #### `groups/{groupId}/budgets/{budgetId}`
+
 ```typescript
 {
   id: string;
@@ -431,11 +469,13 @@ Interactive Recharts components:
 ## 🔒 Security & Best Practices
 
 ### 1. **TypeScript Strict Mode**
+
 - All files use strict TypeScript for type safety
 - Custom type definitions for Firebase objects
 - Window interface extensions for global state
 
 ### 2. **Firebase Security Rules**
+
 ```typescript
 rules_version = '2';
 service cloud.firestore {
@@ -443,16 +483,16 @@ service cloud.firestore {
     // Authenticated user access
     match /users/{userId} {
       allow read: if request.auth.uid == userId;
-      allow write: if request.auth.uid == userId && 
+      allow write: if request.auth.uid == userId &&
                       request.resource.data.keys().hasAll(['email', 'displayName']);
     }
-    
+
     // Group member access
     match /groups/{groupId} {
       allow read: if request.auth.uid in resource.data.members;
       allow create: if request.auth.uid == request.resource.data.createdBy;
       allow update: if request.auth.uid in resource.data.members;
-      
+
       // Expenses subcollection
       match /expenses/{expenseId} {
         allow read: if request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
@@ -464,12 +504,14 @@ service cloud.firestore {
 ```
 
 ### 3. **Authentication Security**
+
 - Passwords validated (min 6 chars)
 - Phone auth with Recaptcha verification
 - OAuth via Firebase providers
 - No sensitive data stored in localStorage
 
 ### 4. **Data Validation**
+
 - Input sanitization before Firestore writes
 - Type checking at compile time
 - Runtime validation in forms
@@ -481,19 +523,23 @@ service cloud.firestore {
 ### Deploy to Firebase Hosting
 
 1. **Install Firebase CLI**
+
    ```bash
    npm install -g firebase-tools
    ```
 
 2. **Authenticate**
+
    ```bash
    firebase login
    ```
 
 3. **Initialize Firebase in project**
+
    ```bash
    firebase init hosting
    ```
+
    - Select your project
    - Set public directory to `.next`
    - Configure as single-page app: **No**
@@ -528,6 +574,7 @@ Your app will be live at: `https://yourproject.web.app`
 This is a personal project, but feel free to fork and customize for your own use.
 
 ### How to Contribute
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
@@ -545,15 +592,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support & Troubleshooting
 
 ### Issue: "Property 'recaptchaVerifier' does not exist"
+
 **Solution**: The `window.d.ts` file declares the type. Ensure it's in `src/types/`.
 
 ### Issue: "Firebase credentials not found"
+
 **Solution**: Check that `.env.local` exists and has all required keys. Restart dev server after adding it.
 
 ### Issue: "Expenses not syncing in real-time"
+
 **Solution**: Verify Firestore security rules allow the user's UID in group members array.
 
 ### Issue: TypeScript build errors for Recharts
+
 **Solution**: These are fixed by removing explicit type annotations from formatter functions and using runtime type checks.
 
 ---
@@ -570,35 +621,36 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Last updated: May 25, 2026
 
-When deploying this app, you must secure your Firebase infrastructure. Leaving your Firestore database completely open is a severe security threat. 
+When deploying this app, you must secure your Firebase infrastructure. Leaving your Firestore database completely open is a severe security threat.
 
 ### 1. Firestore Security Rules
-Currently, if your Firestore rules are in "Test Mode" (`allow read, write: if true;`), **anyone can delete or steal your data**. 
+
+Currently, if your Firestore rules are in "Test Mode" (`allow read, write: if true;`), **anyone can delete or steal your data**.
 Go to the **Firestore Database -> Rules** tab in the Firebase Console and update them to secure your data based on authentication and group membership:
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Users can only read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Group Rules: Only members can read or modify a group
     match /groups/{groupId} {
       allow create: if request.auth != null;
       allow read, update, delete: if request.auth != null && request.auth.uid in resource.data.members;
-      
+
       // Sub-collections (expenses, settlements)
       match /expenses/{expenseId} {
         // Can only read/write expenses if you are part of the parent group
-        allow read, write: if request.auth != null && 
+        allow read, write: if request.auth != null &&
                            request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
       }
       match /settlements/{settlementId} {
-        allow read, write: if request.auth != null && 
+        allow read, write: if request.auth != null &&
                            request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
       }
     }
@@ -607,10 +659,13 @@ service cloud.firestore {
 ```
 
 ### 2. API Key Restrictions
+
 While Firebase API keys are technically safe to be exposed in the frontend (since they just identify your project to Google), malicious users could still take your API key and spam your backend with fake requests.
+
 - **Action Required**: Go to the **Google Cloud Console**, find your `Browser key (auto created by Firebase)`, and **Restrict the API Key** to only allow requests from your production domain (e.g., `famwallet.vercel.app` and `localhost`).
 
 ### 3. Data Retention Policy
-To prevent your database from ballooning indefinitely (and costing you money):
-- Set up a **TTL (Time-to-Live) Policy** in Google Cloud for the `expenses` collection, deleting documents where `createdAt` is older than 365 days.
 
+To prevent your database from ballooning indefinitely (and costing you money):
+
+- Set up a **TTL (Time-to-Live) Policy** in Google Cloud for the `expenses` collection, deleting documents where `createdAt` is older than 365 days.
