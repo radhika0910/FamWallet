@@ -6,8 +6,6 @@ A **premium, fast, and real-time** family expense tracker built for couples, fam
 
 ---
 
-Checking workflow - additions with dev and then merging branch
-
 ## 📋 Table of Contents
 
 - [Features](#features)
